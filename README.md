@@ -25,7 +25,17 @@ Firstly, copy the directory `exoskeleton` to your `catkin_ws/src`
 Launch the exoskeleton model:
 
 `roslaunch exoskeleton world.launch paused:=true`
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
 
+# Ruff stuff:
+.ruff_cache/
+
+# PyPI configuration file
+.pypirc
+
+cmake-build-debug/*
 Launch the `rqt_gui` for control and tuning parameter:
 
 `roslaunch exoskeleton rqt.launch`
