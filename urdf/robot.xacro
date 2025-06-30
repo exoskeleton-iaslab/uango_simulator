@@ -12,9 +12,9 @@
   <xacro:property name="up_width" value="0.1" /> 
   <xacro:property name="up_height" value="0.05" /> 
   <xacro:property name="up_effort" value="500" /> 
-  <xacro:property name="up_lower" value="${-PI/2}" /> 
-  <xacro:property name="up_upper" value="${PI/6}" /> 
-  <xacro:property name="up_maxvel" value="${2*PI}" /> 
+  <xacro:property name="up_lower" value="${-PI/2}" />
+  <xacro:property name="up_upper" value="${2*PI/3}" />
+  <xacro:property name="up_maxvel" value="${2*PI}" />
   <!--down property-->
   <xacro:property name="down_mass" value="3" /> 
   <xacro:property name="down_length" value="0.5" /> 
@@ -25,21 +25,33 @@
   <xacro:property name="down_upper" value="${PI*2/3}" /> 
   <xacro:property name="down_maxvel" value="${PI*3}" /> 
   <!--foot property-->
-  <xacro:property name="foot_back_mass" value="1" /> 
-  <xacro:property name="foot_front_mass" value="0.5" /> 
-  <xacro:property name="foot_back_length" value="0.15" /> 
-  <xacro:property name="foot_front_length" value="0.15" /> 
-  <xacro:property name="foot_width" value="0.15" /> 
-  <xacro:property name="foot_height" value="0.05" /> 
+  <xacro:property name="foot_back_mass" value="1.0" />
+  <xacro:property name="foot_back_length" value="0.22" />
+  <xacro:property name="foot_width" value="0.15" />
+  <xacro:property name="foot_height" value="0.025" />
   <xacro:property name="foot_effort" value="500" /> 
   <xacro:property name="foot_front_lower" value="${-PI/3}" /> 
   <xacro:property name="foot_front_upper" value="0" /> 
   <xacro:property name="foot_back_lower" value="${-PI/18}" /> 
   <xacro:property name="foot_back_upper" value="${PI/6}" /> 
-  <xacro:property name="foot_maxvel" value="${PI}" /> 
+  <xacro:property name="foot_maxvel" value="${PI}" />
+
+  <!--cam property-->
+  <xacro:property name="camera_length" value="0.09"/>  <!-- 90 mm -->
+  <xacro:property name="camera_width"  value="0.025"/> <!-- 25 mm -->
+  <xacro:property name="camera_height" value="0.025"/> <!-- 25 mm -->
+  <xacro:property name="camera_offset_x" value="0.0"/>
+  <xacro:property name="camera_offset_y" value="0.0"/>
+  <xacro:property name="camera_offset_z" value="0.0"/>
+  <xacro:property name="camera_roll"  value="${PI/2}"/>  <!-- 90° -->
+  <xacro:property name="camera_pitch" value="0.0"/>
+  <xacro:property name="camera_yaw"   value="${PI/2}"/>  <!-- 90° -->
+  <xacro:property name="camera_inclination" value="${PI/4}"/> <!-- 45° -->
 
   <!-- Import all Gazebo-customization elements, including Gazebo colors -->
   <xacro:include filename="$(find exoskeleton)/urdf/robot.gazebo" />
+  <xacro:include filename="$(find exoskeleton)/urdf/realsense_d435.xacro"/>
+
 
   <link name="waist_link">
     <collision>
@@ -64,6 +76,60 @@
 	  izz="${waist_mass / 12.0 * (waist_height*waist_height + waist_length*waist_length)}"/>
     </inertial>
   </link>
+
+    <joint name="camera_joint" type="fixed">
+      <parent link="waist_link"/>
+      <child link="camera_link"/>
+      <origin xyz="${-up_width/2} 0 0" rpy="0 ${camera_inclination} 0"/>
+    </joint>
+
+  <link name="camera_link">
+    <visual>
+        <origin xyz="${camera_width} 0 0" rpy="${camera_roll} ${camera_pitch} ${camera_yaw}"/>
+            <geometry>
+                <mesh filename="$(find exoskeleton)/urdf/realsense_d435.dae" scale="1 1 1"/>
+            </geometry>
+    </visual>
+    <collision>
+        <origin xyz="${camera_width} 0 0" rpy="${camera_roll} ${camera_pitch} ${camera_yaw}"/>
+            <geometry>
+                <mesh filename="$(find exoskeleton)/urdf/realsense_d435.dae" scale="1 1 1"/>
+            </geometry>
+        </collision>
+    <inertial>
+        <mass value="0.1"/>
+        <origin xyz="${camera_width} 0 0" rpy="${camera_roll} ${camera_pitch} ${camera_yaw}"/>
+        <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+
+  <link name="d435_depth_optical_frame"/>
+  <joint name="d435_depth_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="d435_depth_optical_frame"/>
+    <origin xyz="0 0 0" rpy="0 -${camera_inclination} 0"/>
+  </joint>
+
+  <link name="d435_color_optical_frame"/>
+  <joint name="d435_color_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="d435_color_optical_frame"/>
+    <origin xyz="0 0 0" rpy="0 -${camera_inclination} 0"/>
+  </joint>
+
+  <link name="d435_infra1_optical_frame"/>
+  <joint name="d435_infra1_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="d435_infra1_optical_frame"/>
+    <origin xyz="0 0 0" rpy="0 -${camera_inclination} 0"/>
+  </joint>
+
+  <link name="d435_infra2_optical_frame"/>
+  <joint name="d435_infra2_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="d435_infra2_optical_frame"/>
+    <origin xyz="0 0 0" rpy="0 -${camera_inclination} 0"/>
+  </joint>
 
   <joint name="LU_joint" type="revolute">
     <limit
@@ -202,7 +268,7 @@
        velocity="${foot_maxvel}" effort="${foot_effort}" lower="${foot_back_lower}" upper="${foot_back_upper}" />
     <parent link="LD_link"/>
     <child link="LF_link"/>
-    <origin xyz="0 ${-down_height} ${-down_length}" rpy="0 0 0"/>
+    <origin xyz="-0.05 ${-down_height} ${-down_length}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0.7"/>
   </joint>
@@ -238,7 +304,7 @@
        velocity="${foot_maxvel}" effort="${foot_effort}" lower="${foot_back_lower}" upper="${foot_back_upper}" />
     <parent link="RD_link"/>
     <child link="RF_link"/>
-    <origin xyz="0 ${down_height} ${-down_length}" rpy="0 0 0"/>
+    <origin xyz="-0.05 ${down_height} ${-down_length}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0.7"/>
   </joint>
@@ -263,81 +329,6 @@
 	  ixx="${foot_back_mass / 12.0 * (foot_width*foot_width + foot_height*foot_height)}" ixy="0.0" ixz="0.0"
 	  iyy="${foot_back_mass / 12.0 * (foot_back_length*foot_back_length + foot_height*foot_height)}" iyz="0.0"
 	  izz="${foot_back_mass / 12.0 * (foot_back_length*foot_back_length + foot_width*foot_width)}"/>
-    </inertial>
-  </link>
-
-  <joint name="LFF_joint" type="revolute">
-    <limit
-       velocity="${foot_maxvel}" effort="${foot_effort}" lower="${foot_front_lower}" upper="${foot_front_upper}" />
-    <parent link="LF_link"/>
-    <child link="LFF_link"/>
-    <origin xyz="${foot_back_length-down_width/2} 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <dynamics damping="0.7"/>
-  </joint>
-
-  <link name="LFF_link">
-    <gazebo>
-        <self_collide>1</self_collide>
-    </gazebo>
-    <collision>
-      <origin xyz="${foot_front_length/2} ${-foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
-      <geometry>
-	    <box size="${foot_front_length} ${foot_width} ${foot_height}"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin xyz="${foot_front_length/2} ${-foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
-      <geometry>
-	    <box size="${foot_front_length} ${foot_width} ${foot_height}"/>
-      </geometry>
-      <material name="orange"/>
-    </visual>
-    <inertial>
-      <origin xyz="${foot_front_length/2} ${-foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
-      <mass value="${foot_front_mass}"/>
-      <inertia
-	  ixx="${foot_front_mass / 12.0 * (foot_width*foot_width + foot_height*foot_height)}" ixy="0.0" ixz="0.0"
-	  iyy="${foot_front_mass / 12.0 * (foot_front_length*foot_front_length + foot_height*foot_height)}" iyz="0.0"
-	  izz="${foot_front_mass / 12.0 * (foot_front_length*foot_front_length + foot_width*foot_width)}"/>
-    </inertial>
-  </link>
-
-
-  <joint name="RFF_joint" type="revolute">
-    <limit
-       velocity="${foot_maxvel}" effort="${foot_effort}" lower="${foot_front_lower}" upper="${foot_front_upper}" />
-    <parent link="RF_link"/>
-    <child link="RFF_link"/>
-    <origin xyz="${foot_back_length-down_width/2} 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <dynamics damping="0.7"/>
-  </joint>
-
-  <link name="RFF_link">
-    <gazebo>
-        <self_collide>1</self_collide>
-    </gazebo>
-    <collision>
-      <origin xyz="${foot_front_length/2} ${foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
-      <geometry>
-	    <box size="${foot_front_length} ${foot_width} ${foot_height}"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin xyz="${foot_front_length/2} ${foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
-      <geometry>
-	    <box size="${foot_front_length} ${foot_width} ${foot_height}"/>
-      </geometry>
-      <material name="orange"/>
-    </visual>
-    <inertial>
-      <origin xyz="${foot_front_length/2} ${foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
-      <mass value="${foot_front_mass}"/>
-      <inertia
-	  ixx="${foot_front_mass / 12.0 * (foot_width*foot_width + foot_height*foot_height)}" ixy="0.0" ixz="0.0"
-	  iyy="${foot_front_mass / 12.0 * (foot_front_length*foot_front_length + foot_height*foot_height)}" iyz="0.0"
-	  izz="${foot_front_mass / 12.0 * (foot_front_length*foot_front_length + foot_width*foot_width)}"/>
     </inertial>
   </link>
 
@@ -407,4 +398,15 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+
+  <xacro:gazebo_d435
+     camera_name="d435"
+     reference_link="camera_link"
+     topics_ns="camera"
+     depth_optical_frame="d435_depth_optical_frame"
+     color_optical_frame="d435_color_optical_frame"
+     infrared1_optical_frame="d435_infra1_optical_frame"
+     infrared2_optical_frame="d435_infra2_optical_frame"
+  />
+
 </robot>

@@ -11,7 +11,7 @@
   
   <gazebo reference="waist_link">
     <material>Gazebo/Red</material>
-    <kinematic>True</kinematic>
+    <kinematic>false</kinematic>
   </gazebo>
   <gazebo reference="LU_link">
     <material>Gazebo/Orange</material>
@@ -27,20 +27,19 @@
   </gazebo>
   <gazebo reference="LF_link">
     <material>Gazebo/Gold</material>
+    <mu1>0.8</mu1>
+    <kp>100000</kp>
+    <mu2>0.8</mu2>
+    <kd>30.0</kd>
   </gazebo>
   <gazebo reference="RF_link">
     <material>Gazebo/Gold</material>
-  </gazebo>
-  <gazebo reference="LFF_link">
-    <material>Gazebo/Orange</material>
-    <mu1>1.0</mu1>
+    <mu1>0.8</mu1>
     <kp>100000</kp>
+    <mu2>0.8</mu2>
+    <kd>30.0</kd>
   </gazebo>
-  <gazebo reference="RFF_link">
-    <material>Gazebo/Orange</material>
-    <mu1>1.0</mu1>
-    <kp>100000</kp>
-  </gazebo>
+
       
   <gazebo>
     <plugin name="spring_joint" filename="libspring_joint.so">

@@ -25,6 +25,10 @@
             -x 0.0 -y 0.0 -z 1.10 -R 0.0 -P 0.1 -Y 0.0
   "/>
 
+  <node pkg="exoskeleton" type="dynamic_balancer.py" name="dynamic_balancer" output="screen" />
+<!--  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="log" />-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_root_frame_broadcaster" args="0 0 0 0 0 0 world waist_link" />
+
   <!-- ros_control launch file -->
   <include file="$(find exoskeleton)/launch/control.launch" />
 
