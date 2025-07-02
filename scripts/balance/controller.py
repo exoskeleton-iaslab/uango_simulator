@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from scripts.kinematics import Kinematics
+from scripts.balance.kinematics import Kinematics
 
 
 class Controller:

@@ -9,10 +9,10 @@ from std_msgs.msg import Float64
 from std_srvs.srv import Empty
 from trio import sleep
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from scripts.links import Links
-from scripts.dynamic_balancer import DynamicBalancer
+from scripts.balance.links import Links
+from scripts.balance.dynamic_balancer import DynamicBalancer
 
 
 class RunBalance:

@@ -6,10 +6,10 @@ import sys
 import rospy
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from scripts.robot_state_subscriber import RobotStateSubscriber
-from scripts.kinematics import Kinematics
-from scripts.controller import Controller
-from scripts.wrench_publisher import WrenchPublisher
+from scripts.balance.robot_state_subscriber import RobotStateSubscriber
+from scripts.balance.kinematics import Kinematics
+from scripts.balance.controller import Controller
+from scripts.balance.wrench_publisher import WrenchPublisher
 
 
 class DynamicBalancer:
