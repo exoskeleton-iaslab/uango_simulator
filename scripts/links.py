@@ -39,8 +39,8 @@ class Links:
 
     def parse_links(self) -> dict:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        xacro_path = os.path.join(base_dir, "urdf", "robot.xacro")
-        urdf_path = os.path.join(base_dir, "urdf", "robot.urdf")
+        xacro_path = os.path.join(base_dir, "robot_description", "robot.xacro")
+        urdf_path = os.path.join(base_dir, "robot_description", "robot.urdf")
         self._generate_urdf_from_xacro(xacro_path, urdf_path)
 
         if not os.path.exists(xacro_path):

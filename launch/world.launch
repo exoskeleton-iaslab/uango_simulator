@@ -1,5 +1,4 @@
 <launch>
-  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
@@ -15,21 +14,16 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <!-- Load the URDF into the ROS Parameter Server -->
-  <param name="robot_description"
-    command="$(find xacro)/xacro --inorder '$(find exoskeleton)/urdf/robot.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find exoskeleton)/robot_description/robot.xacro'" />
 
-  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
     args="-urdf -model exoskeleton -param robot_description
             -x 0.0 -y 0.0 -z 1.10 -R 0.0 -P 0.1 -Y 0.0
   "/>
 
   <node pkg="exoskeleton" type="run_balance.py" name="run_balance" output="screen" />
-<!--  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="log" />-->
   <node pkg="tf2_ros" type="static_transform_publisher" name="static_root_frame_broadcaster" args="0 0 0 0 0 0 world waist_link" />
 
-  <!-- ros_control launch file -->
   <include file="$(find exoskeleton)/launch/control.launch" />
 
 </launch>

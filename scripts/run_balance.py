@@ -3,10 +3,11 @@
 import logging
 import os
 import sys
-import time
 
 import rospy
 from std_msgs.msg import Float64
+from std_srvs.srv import Empty
+from trio import sleep
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -16,7 +17,6 @@ from scripts.dynamic_balancer import DynamicBalancer
 
 class RunBalance:
     def __init__(self):
-        time.sleep(2.0)
         logging.basicConfig(level=logging.INFO)
         rospy.init_node('dynamic_balancer_node', anonymous=True)
 
@@ -38,8 +38,20 @@ class RunBalance:
         self.pub_left_ankle.publish(0.0)
         self.pub_right_ankle.publish(0.0)
 
+    @staticmethod
+    def reset_simulation() -> None:
+        rospy.wait_for_service('/gazebo/reset_simulation')
+        try:
+            reset_sim = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
+            reset_sim()
+            rospy.loginfo("Gazebo simulation reset.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Failed to reset simulation: {e}")
+
     def run(self):
         self.zero_all_joints()
+        sleep(5)
+        self.reset_simulation()
         while not rospy.is_shutdown():
             try:
                 controller = DynamicBalancer(links=self.links)

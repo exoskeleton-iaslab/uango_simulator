@@ -49,8 +49,8 @@
   <xacro:property name="camera_inclination" value="${PI/4}"/> <!-- 45° -->
 
   <!-- Import all Gazebo-customization elements, including Gazebo colors -->
-  <xacro:include filename="$(find exoskeleton)/urdf/robot.gazebo" />
-  <xacro:include filename="$(find exoskeleton)/urdf/realsense_d435.xacro"/>
+  <xacro:include filename="$(find exoskeleton)/robot_description/robot.gazebo" />
+  <xacro:include filename="$(find exoskeleton)/robot_description/realsense_d435.xacro"/>
 
 
   <link name="waist_link">
@@ -87,13 +87,13 @@
     <visual>
         <origin xyz="${camera_width} 0 0" rpy="${camera_roll} ${camera_pitch} ${camera_yaw}"/>
             <geometry>
-                <mesh filename="$(find exoskeleton)/urdf/realsense_d435.dae" scale="1 1 1"/>
+                <mesh filename="$(find exoskeleton)/robot_description/realsense_d435.dae" scale="1 1 1"/>
             </geometry>
     </visual>
     <collision>
         <origin xyz="${camera_width} 0 0" rpy="${camera_roll} ${camera_pitch} ${camera_yaw}"/>
             <geometry>
-                <mesh filename="$(find exoskeleton)/urdf/realsense_d435.dae" scale="1 1 1"/>
+                <mesh filename="$(find exoskeleton)/robot_description/realsense_d435.dae" scale="1 1 1"/>
             </geometry>
         </collision>
     <inertial>

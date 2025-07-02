@@ -69,7 +69,7 @@ Link IMU plug-in topic:
 
 ### Mechanical Parameter
 
-See in `urdf/robot.xacro`
+See in `robot_description/robot.xacro`
 It's a very simple model.
 *It can not keep balance _without_ control.*
 
