@@ -30,7 +30,7 @@ class RunBalance:
         self.links = Links().parse_links()
         self.links.pop('camera', None)
 
-    def zero_all_joints(self):
+    def zero_all_joints(self) -> None:
         self.pub_left_hip.publish(0.0)
         self.pub_right_hip.publish(0.0)
         self.pub_left_knee.publish(0.0)
@@ -39,6 +39,7 @@ class RunBalance:
         self.pub_right_ankle.publish(0.0)
 
     def run(self):
+        self.zero_all_joints()
         while not rospy.is_shutdown():
             try:
                 controller = DynamicBalancer(links=self.links)

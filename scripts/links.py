@@ -11,7 +11,7 @@ class Links:
         self.links_values = {}
 
     @staticmethod
-    def _parse_inertial(xml_element):
+    def _parse_inertial(xml_element: Et.Element) -> tuple:
         mass = None
         com_offset = None
 
@@ -30,14 +30,14 @@ class Links:
         return mass, com_offset
 
     @staticmethod
-    def _generate_urdf_from_xacro(xacro_path, output_urdf_path):
+    def _generate_urdf_from_xacro(xacro_path: str, output_urdf_path: str) -> None:
         cmd = f"xacro {xacro_path} > {output_urdf_path}"
         try:
             os.system(cmd)
         except Exception as e:
             print(f"Error executing xacro command: {e}")
 
-    def parse_links(self):
+    def parse_links(self) -> dict:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         xacro_path = os.path.join(base_dir, "urdf", "robot.xacro")
         urdf_path = os.path.join(base_dir, "urdf", "robot.urdf")
@@ -67,9 +67,3 @@ class Links:
             print(f"Warning: failed to remove temporary URDF file: {e}")
 
         return self.links_values
-
-
-# if __name__ == "__main__":
-#     link_parser = Links()
-#     links = link_parser.parse_links()
-#     print(links)

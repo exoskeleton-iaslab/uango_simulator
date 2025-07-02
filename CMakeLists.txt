@@ -160,6 +160,10 @@ include_directories(
 # Mark executable scripts (Python etc.) for installation
 # in contrast to setup.py, you can choose the destination
  install(PROGRAMS
+         scripts/controller.py
+         scripts/wrench_publisher.py
+         scripts/kinematics.py
+         scripts/robot_state_subscriber.py
          scripts/dynamic_balancer.py
          scripts/links.py
          scripts/run_balance.py
