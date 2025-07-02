@@ -65,7 +65,10 @@
       <geometry>
 	    <box size="${waist_height} ${waist_length} ${waist_width}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
+
     </visual>
     <inertial>
       <origin xyz="${-waist_height/2-up_width/2} 0 0" rpy="0 0 0"/>
@@ -152,7 +155,9 @@
       <geometry>
 	    <box size="${up_width} ${up_height} ${up_length}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
     </visual>
     <inertial>
       <origin xyz="0 ${up_height/2} ${-(up_length/2)}" rpy="0 0 0"/>
@@ -185,7 +190,9 @@
       <geometry>
 	    <box size="${up_width} ${up_height} ${up_length}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
     </visual>
     <inertial>
       <origin xyz="0 ${-up_height/2} ${-(up_length/2)}" rpy="0 0 0"/>
@@ -218,7 +225,9 @@
       <geometry>
 	    <box size="${down_width} ${down_height} ${down_length}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
     </visual>
     <inertial>
       <origin xyz="0 ${-down_height/2} ${-(down_length/2)}" rpy="0 0 0"/>
@@ -251,7 +260,9 @@
       <geometry>
 	    <box size="${down_width} ${down_height} ${down_length}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
     </visual>
     <inertial>
       <origin xyz="0 ${down_height/2} ${-(down_length/2)}" rpy="0 0 0"/>
@@ -287,7 +298,9 @@
       <geometry>
 	    <box size="${foot_back_length} ${foot_width} ${foot_height}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
     </visual>
     <inertial>
       <origin xyz="${foot_back_length/2-down_width/2} ${-foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
@@ -320,7 +333,9 @@
       <geometry>
 	    <box size="${foot_back_length} ${foot_width} ${foot_height}"/>
       </geometry>
-      <material name="orange"/>
+      <material name="orange">
+        <color rgba="1 0.5 0 1"/>
+      </material>
     </visual>
     <inertial>
       <origin xyz="${foot_back_length/2-down_width/2} ${foot_width/2} ${-foot_height/2}" rpy="0 0 0"/>
