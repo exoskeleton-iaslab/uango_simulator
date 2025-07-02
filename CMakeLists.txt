@@ -149,7 +149,8 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-#############
+#############   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+
 ## Install ##
 #############
 
@@ -160,7 +161,9 @@ include_directories(
 # in contrast to setup.py, you can choose the destination
  install(PROGRAMS
          scripts/dynamic_balancer.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+         scripts/links.py
+         scripts/run_balance.py
+         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
 

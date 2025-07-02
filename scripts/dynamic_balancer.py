@@ -1,53 +1,19 @@
 #!/usr/bin/env python3
 
-import logging
-import time
-
 import numpy as np
 import rospy
 from gazebo_msgs.msg import LinkStates
 from gazebo_msgs.srv import ApplyBodyWrench
-from geometry_msgs.msg import Wrench, Point, Vector3, PointStamped
-from scipy.spatial.transform import Rotation as R
-from std_msgs.msg import String, Float64
-
-links = {
-    "waist": {
-        "mass": 10.0,
-        "com_offset": np.array([-0.05 - 0.05, 0, 0])
-    },
-    "LU": {
-        "mass": 8.0,
-        "com_offset": np.array([0, 0.025, -0.25])
-    },
-    "RU": {
-        "mass": 8.0,
-        "com_offset": np.array([0, -0.025, -0.25])
-    },
-    "LD": {
-        "mass": 3.0,
-        "com_offset": np.array([0, -0.025, -0.25])
-    },
-    "RD": {
-        "mass": 3.0,
-        "com_offset": np.array([0, 0.025, -0.25])
-    },
-    "LF": {
-        "mass": 1.0,
-        "com_offset": np.array([0.11 - 0.05, -0.075, -0.0125])
-    },
-    "RF": {
-        "mass": 1.0,
-        "com_offset": np.array([0.11 - 0.05, 0.075, -0.0125])
-    }
-}
+from geometry_msgs.msg import Wrench, Point, Vector3
+from scipy.spatial.transform import Rotation
+from std_msgs.msg import String
 
 
 class DynamicBalancer:
-    def __init__(self):
-        rospy.init_node('dynamic_waist_balancer')
+    def __init__(self, links: dict):
         self.filtered_vel = np.zeros(3)
         self.alpha = 0.8
+        self.torque_limits = np.array([2000, 1, 2000])
 
         self.left_upper_leg = 'exoskeleton::LU_link'
         self.right_upper_leg = 'exoskeleton::RU_link'
@@ -57,25 +23,23 @@ class DynamicBalancer:
         self.right_foot = 'exoskeleton::RF_link'
         self.waist_link = 'exoskeleton::waist_link'
 
-        self.kp_pos = np.array([360, 360, 330])  # P gains for position
-        self.kd_pos = np.array([350, 350, 320])  # D gains for position
-        self.kp_ori = np.array([80, 80, 60])  # P gains for orientation
+        self.kp_pos = np.array([360, 360, 330])
+        self.kd_pos = np.array([350, 350, 320])
+        self.kp_ori = np.array([80, 80, 60])
         self.kd_ori = np.array([60, 60, 60])
         self.gravity = 9.81
 
-        self.pub_com = rospy.Publisher('/exoskeleton/com', PointStamped, queue_size=10)
-        self.pub_target = rospy.Publisher('/exoskeleton/target_position', PointStamped, queue_size=10)
+        self.links = links
 
         self.latest_state = None
-        rospy.Subscriber('/gazebo/link_states', LinkStates, self.callback)
+        rospy.Subscriber('/gazebo/link_states', LinkStates, self._callback_link_states)
         self.support_leg = ''
-        rospy.Subscriber('/exoskeleton/support_leg', String, self.callback_support_leg)
+        rospy.Subscriber('/exoskeleton/support_leg', String, self._callback_support_leg)
 
         self.wrench_service = rospy.ServiceProxy('/gazebo/apply_body_wrench', ApplyBodyWrench)
         rospy.wait_for_service('/gazebo/apply_body_wrench')
 
-    def callback_support_leg(self, msg):
-        rospy.loginfo("Received support leg command: %s", msg.data)
+    def _callback_support_leg(self, msg: String):
         if msg.data == "left":
             self.support_leg = 'left'
         elif msg.data == "right":
@@ -83,7 +47,7 @@ class DynamicBalancer:
         else:
             self.support_leg = ''
 
-    def callback(self, msg):
+    def _callback_link_states(self, msg: LinkStates):
         try:
             ru_idx = msg.name.index(self.right_upper_leg)
             lu_idx = msg.name.index(self.left_upper_leg)
@@ -112,171 +76,117 @@ class DynamicBalancer:
             'LD_twist': msg.twist[ld_idx]
         }
 
-    def compute_target_position(self):
-        position_lf = np.array([
-            self.latest_state['LF_pose'].position.x,
-            self.latest_state['LF_pose'].position.y,
-            self.latest_state['LF_pose'].position.z
-        ])
-        quat_lf = np.array([
-            self.latest_state['LF_pose'].orientation.x,
-            self.latest_state['LF_pose'].orientation.y,
-            self.latest_state['LF_pose'].orientation.z,
-            self.latest_state['LF_pose'].orientation.w
-        ])
-        position_rf = np.array([
-            self.latest_state['RF_pose'].position.x,
-            self.latest_state['RF_pose'].position.y,
-            self.latest_state['RF_pose'].position.z
-        ])
-        quat_rf = np.array([
-            self.latest_state['RF_pose'].orientation.x,
-            self.latest_state['RF_pose'].orientation.y,
-            self.latest_state['RF_pose'].orientation.z,
-            self.latest_state['RF_pose'].orientation.w
-        ])
+    def _extract_pose(self, prefix: str) -> (np.ndarray, np.ndarray):
+        pos = self.latest_state[f'{prefix}_pose'].position
+        ori = self.latest_state[f'{prefix}_pose'].orientation
+        position = np.array([pos.x, pos.y, pos.z])
+        quat = np.array([ori.x, ori.y, ori.z, ori.w])
+        return position, quat
 
-        r_lf = R.from_quat(quat_lf)
-        r_rf = R.from_quat(quat_rf)
-        lf = position_lf + r_lf.apply(links['LF']['com_offset'])
-        rf = position_rf + r_rf.apply(links['RF']['com_offset'])
+    def _compute_com_position(self, prefix: str) -> np.ndarray:
+        position, quat = self._extract_pose(prefix)
+        rotation = Rotation.from_quat(quat)
+        com_offset = self.links[prefix]['com_offset']
+        return position + rotation.apply(com_offset)
+
+    def _target_position(self) -> np.ndarray:
+        lf_com_pos = self._compute_com_position('LF')
+        rf_com_pos = self._compute_com_position('RF')
 
         if self.support_leg == 'left':
-            target = np.array([lf[0], lf[1], lf[2]])
+            return lf_com_pos
         elif self.support_leg == 'right':
-            target = np.array([rf[0], rf[1], rf[2]])
+            return rf_com_pos
         else:
-            mid_x = (lf[0] + rf[0]) / 2.0
-            mid_y = (lf[1] + rf[1]) / 2.0
-            max_z = max(lf[2], rf[2])
-            target = np.array([mid_x, mid_y, max_z])
-        return target
+            mid_xy = (lf_com_pos[:2] + rf_com_pos[:2]) / 2.0
+            max_z = max(float(lf_com_pos[2]), float(rf_com_pos[2]))
+            return np.array([mid_xy[0], mid_xy[1], max_z])
 
-    def com(self):
+    def _compute_link_com_position(self, link_name: str) -> np.ndarray:
+        return self._compute_com_position(link_name)
+
+    def _compute_link_linear_velocity(self, link_name: str) -> np.ndarray:
+        twist = self.latest_state[f"{link_name}_twist"]
+        return np.array([twist.linear.x, twist.linear.y, twist.linear.z])
+
+    def _compute_center_of_mass_state(self) -> (np.ndarray, np.ndarray, float):
         total_mass = 0.0
-        weighted_com_sum = np.zeros(3)
-
-        for link_name, props in links.items():
-            pose = self.latest_state[f"{link_name}_pose"]
-
-            position = np.array([
-                pose.position.x,
-                pose.position.y,
-                pose.position.z
-            ])
-
-            quat = np.array([
-                pose.orientation.x,
-                pose.orientation.y,
-                pose.orientation.z,
-                pose.orientation.w
-            ])
-
-            rotation = R.from_quat(quat)
-            com_world = position + rotation.apply(props["com_offset"])
-
-            mass = props["mass"]
-            total_mass += mass
-            weighted_com_sum += mass * com_world
-
-        com_total = weighted_com_sum / total_mass
+        weighted_com_pos_sum = np.zeros(3)
         weighted_com_vel_sum = np.zeros(3)
-        for link_name, props in links.items():
-            twist = self.latest_state[f"{link_name}_twist"]
-            linear_vel = np.array([
-                twist.linear.x,
-                twist.linear.y,
-                twist.linear.z
-            ])
 
-            mass = props["mass"]
-            weighted_com_vel_sum += mass * linear_vel
+        for link_name, props in self.links.items():
+            com_pos = self._compute_link_com_position(link_name)
+            linear_vel = self._compute_link_linear_velocity(link_name)
 
+            total_mass += props["mass"]
+            weighted_com_pos_sum += props["mass"] * com_pos
+            weighted_com_vel_sum += props["mass"] * linear_vel
+
+        com_position = weighted_com_pos_sum / total_mass
         com_velocity = weighted_com_vel_sum / total_mass
-        return com_total, com_velocity, total_mass
+
+        return com_position, com_velocity, total_mass
+
+    def _compute_force_command(self, pos: np.ndarray, vel: np.ndarray, total_mass: float) -> np.ndarray:
+        error_pos = self._target_position() - pos
+        self.filtered_vel = self.alpha * self.filtered_vel + (1 - self.alpha) * vel
+        d_error_pos = -self.filtered_vel
+
+        force_cmd = self.kp_pos * error_pos + self.kd_pos * d_error_pos
+        force_cmd[2] += total_mass * self.gravity
+        return force_cmd
+
+    def _compute_torque_command(self) -> np.ndarray:
+        waist_pose = self.latest_state['waist_pose']
+        quat = np.array([
+            waist_pose.orientation.x,
+            waist_pose.orientation.y,
+            waist_pose.orientation.z,
+            waist_pose.orientation.w
+        ])
+        r = Rotation.from_quat(quat)
+        euler = r.as_euler('xyz')
+
+        waist_twist = self.latest_state['waist_twist']
+        angular_vel = np.array([
+            waist_twist.angular.x,
+            waist_twist.angular.y,
+            waist_twist.angular.z
+        ])
+
+        torque_cmd = -self.kp_ori * euler - self.kd_ori * angular_vel
+        torque_cmd = np.clip(torque_cmd, -self.torque_limits, self.torque_limits)
+
+        return torque_cmd
+
+    def _send_wrench_command(self, force_cmd: np.ndarray, torque_cmd: np.ndarray) -> None:
+        wrench = Wrench()
+        wrench.force = Vector3(*force_cmd)
+        wrench.torque = Vector3(*torque_cmd)
+
+        try:
+            self.wrench_service(
+                body_name=self.waist_link,
+                reference_frame="world",
+                reference_point=Point(0, 0, 0),
+                wrench=wrench,
+                start_time=rospy.Time.now(),
+                duration=rospy.Duration.from_sec(0.05)
+            )
+        except rospy.ServiceException as e:
+            rospy.logwarn(f"Wrench service failed: {e}")
 
     def run(self):
-        rate_hz = 100.0
-        rate = rospy.Rate(rate_hz)
+        rate = rospy.Rate(100)
         while not rospy.is_shutdown():
             if self.latest_state is None:
                 rate.sleep()
                 continue
 
-            pos, vel, total_mass = self.com()
+            pos, vel, total_mass = self._compute_center_of_mass_state()
+            force_cmd = self._compute_force_command(pos, vel, total_mass)
+            torque_cmd = self._compute_torque_command()
 
-            target_pos = self.compute_target_position()
-            error_pos = target_pos - pos
-            self.filtered_vel = self.alpha * self.filtered_vel + (1 - self.alpha) * vel
-            d_error_pos = -self.filtered_vel
-
-            force_cmd = self.kp_pos * error_pos + self.kd_pos * d_error_pos
-            force_cmd[2] += total_mass * self.gravity
-
-            wrench = Wrench()
-            waist_pose = self.latest_state['waist_pose']
-            quat = np.array([
-                waist_pose.orientation.x,
-                waist_pose.orientation.y,
-                waist_pose.orientation.z,
-                waist_pose.orientation.w
-            ])
-            r = R.from_quat(quat)
-            euler = r.as_euler('xyz')
-            waist_twist = self.latest_state['waist_twist']
-            angular_vel = np.array([
-                waist_twist.angular.x,
-                waist_twist.angular.y,
-                waist_twist.angular.z
-            ])
-
-            torque_cmd = -self.kp_ori * euler - self.kd_ori * angular_vel
-
-            torque_limits = np.array([2000, 1, 2000])
-            for i in range(3):
-                if abs(torque_cmd[i]) > torque_limits[i]:
-                    torque_cmd[i] = np.sign(torque_cmd[i]) * torque_limits[i]
-
-            wrench.torque = Vector3(*torque_cmd)
-            wrench.force = Vector3(*force_cmd)
-
-            try:
-                self.wrench_service(
-                    body_name=self.waist_link,
-                    reference_frame="world",
-                    reference_point=Point(0, 0, 0),
-                    wrench=wrench,
-                    start_time=rospy.Time.now(),
-                    duration=rospy.Duration(0.05)
-                )
-            except rospy.ServiceException as e:
-                rospy.logwarn("Wrench service failed: %s", e)
+            self._send_wrench_command(force_cmd, torque_cmd)
 
             rate.sleep()
-
-
-if __name__ == '__main__':
-    time.sleep(2.0)
-    logging.basicConfig(level=logging.INFO)
-    pub_left_hip = rospy.Publisher('/exoskeleton/LU_position_controller/command', Float64, queue_size=10)
-    pub_right_hip = rospy.Publisher('/exoskeleton/RU_position_controller/command', Float64, queue_size=10)
-    pub_left_knee = rospy.Publisher('/exoskeleton/LD_position_controller/command', Float64, queue_size=10)
-    pub_right_knee = rospy.Publisher('/exoskeleton/RD_position_controller/command', Float64, queue_size=10)
-    pub_left_ankle = rospy.Publisher('/exoskeleton/LF_position_controller/command', Float64, queue_size=10)
-    pub_right_ankle = rospy.Publisher('/exoskeleton/RF_position_controller/command', Float64, queue_size=10)
-
-    while not rospy.is_shutdown():
-        try:
-            controller = DynamicBalancer()
-            controller.run()
-        except rospy.ROSInterruptException:
-            rospy.loginfo("ROS Interrupt Exception caught, restarting controller...")
-        except Exception as e:
-            rospy.logerr(f"Unexpected error: {e}")
-
-        pub_left_hip.publish(0.0)
-        pub_right_hip.publish(0.0)
-        pub_left_knee.publish(0.0)
-        pub_right_knee.publish(0.0)
-        pub_left_ankle.publish(0.0)
-        pub_right_ankle.publish(0.0)
