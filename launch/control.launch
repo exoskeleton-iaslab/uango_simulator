@@ -1,7 +1,7 @@
 <launch> 
   <rosparam file="$(find exoskeleton)/config/control.yaml" command="load"/>
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-      output="log" ns="/exoskeleton" args="joint_state_controller
+      output="screen" ns="/exoskeleton" args="joint_state_controller
                       LU_position_controller
                       RU_position_controller
                       LD_position_controller
