@@ -10,8 +10,7 @@ from std_srvs.srv import Empty
 from trio import sleep
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-from scripts.balance.links import Links
+from scripts.links import Links
 from scripts.balance.dynamic_balancer import DynamicBalancer
 
 

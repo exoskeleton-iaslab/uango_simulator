@@ -163,10 +163,13 @@ include_directories(
          scripts/balance/controller.py
          scripts/balance/wrench_publisher.py
          scripts/balance/kinematics.py
-         scripts/balance/robot_state_subscriber.py
          scripts/balance/dynamic_balancer.py
-         scripts/balance/links.py
          scripts/balance/run_balance.py
+
+         scripts/joints_publisher/set_joints.py
+
+         scripts/robot_state_subscriber.py
+         scripts/links.py
          DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

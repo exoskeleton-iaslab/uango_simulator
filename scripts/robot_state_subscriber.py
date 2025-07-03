@@ -55,7 +55,7 @@ class RobotStateSubscriber:
             'LD_twist': msg.twist[ld_idx]
         }
 
-    def get_pose(self, link: str) -> Pose.position:
+    def get_pose(self, link: str) -> Pose:
         return self.latest_state[f'{link}_pose']
 
     def get_twist(self, link: str) -> Twist.linear:
