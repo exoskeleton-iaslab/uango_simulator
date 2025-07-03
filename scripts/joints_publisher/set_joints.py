@@ -90,7 +90,7 @@ class SetJoints:
             except rospy.ROSInterruptException as e:
                 rospy.logwarn(f"ROS Exception: {e}", exc_info=True)
             except Exception as e:
-                rospy.logerr(f"Unexpected error: {e}", exc_info=True)
+                rospy.logwarn(f"Unexpected error: {e}", exc_info=True)
 
 
 if __name__ == '__main__':
