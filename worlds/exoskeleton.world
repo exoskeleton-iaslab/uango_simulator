@@ -6,12 +6,10 @@
       <uri>model://ground_plane</uri>
     </include>
 
-    <!-- Global light source -->
     <include>
       <uri>model://sun</uri>
     </include>
 
-    <!-- Focus camera on tall pendulum -->
     <gui fullscreen='0'>
       <camera name='user_camera'>
         <pose>2 -1.4 2 0 0.5 2.5</pose>

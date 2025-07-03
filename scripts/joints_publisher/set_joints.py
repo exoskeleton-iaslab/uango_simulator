@@ -95,7 +95,7 @@ class SetJoints:
 
 if __name__ == '__main__':
     rospy.loginfo("Starting SetJoints controller...")
-    time.sleep(5)
+    time.sleep(10)
     rospy.loginfo("SetJoints controller initialized.")
     controller = SetJoints()
     controller.run()
