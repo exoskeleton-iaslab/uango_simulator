@@ -22,12 +22,11 @@
   "/>
 
   <node pkg="exoskeleton" type="run_balance.py" name="run_balance" output="screen"/>
-  <node pkg="exoskeleton" type="set_joints.py" name="set_joints" output="screen"/>
   <node pkg="uango_ros_py" type="custom_command_service.py" name="custom_command_service" output="screen">
     <param name="only_simulator" value="true" />
   </node>
   <node pkg="tf2_ros" type="static_transform_publisher" name="static_root_frame_broadcaster" args="0 0 0 0 0 0 world waist_link" />
-
+  <node pkg="exoskeleton" type="set_joints.py" name="set_joints" output="screen"/>
   <include file="$(find exoskeleton)/launch/control.launch" />
 
 </launch>
