@@ -32,7 +32,7 @@ Or, to filter out the wrench messages:
 roslaunch exoskeleton world.launch | grep -v "ApplyBodyWrench"
 ```
 
-# configuration file
+# Configuration file
 
 Launch the `rqt_gui` for control and tuning parameter:
 
@@ -54,7 +54,7 @@ Totally six joints:
 
  `LU_joint` `RU_joint` `LD_joint` `RD_joint` `LF_joint` `RF_joint`
 
-*L for left, R for right, U for up, D for down, F for foot*
+*L for left, R for right, U for up, D for down, F for foot.*
 
 *e.g. LU_link > left up link (left thigh)*
 
