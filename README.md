@@ -5,7 +5,7 @@
 We need ROS-Gazebo interface and controller packages:
 
 ```
-sudo apt install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control ros-noetic-ros-controllers` 
+sudo apt install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control ros-noetic-ros-controllers
 ```
 
 ### Install the Package
