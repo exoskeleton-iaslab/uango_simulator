@@ -1,47 +1,47 @@
-![demo](./img/2020-03-12.png)
-
-# ROS-Gazebo Simulation  
-
-A simplt ROS-Gazebo simulation 
+# Uango ROS-Gazebo Simulation  
 
 ### Environment Dependence
 
-Both *Ubuntu 16.04 + ros-kinetic* and *Ubuntu 18.04 + ros-melodic* is compatible.
-
-To install ROS:
-
-`sudo apt install ros-<distro>-desktop-full`
-
 We need ROS-Gazebo interface and controller packages:
 
-`sudo apt install ros-<distro>-gazebo-ros-pkgs ros-<distro>-gazebo-ros-control ros-<distro>-ros-controllers` 
+```
+sudo apt install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control ros-noetic-ros-controllers` 
+```
 
-**After git clone please change the name of the directory** `mv ROS-Gazebo-Simulation exoskeleton`
+### Install the Package
+
+```
+cd ~/catkin_ws/src/
+git clone https://github.com/exoskeleton-iaslab/uango_simulator.git
+cd ~/catkin_ws/
+catkin_make
+source devel/setup.bash
+```
 
 ### Launch the Simulation
 
-Firstly, copy the directory `exoskeleton` to your `catkin_ws/src`
-
 Launch the exoskeleton model:
 
-`roslaunch exoskeleton world.launch paused:=true`
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+```
+roslaunch exoskeleton world.launch
+```
 
-# Ruff stuff:
-.ruff_cache/
+Or, to filter out the wrench messages:
 
-# PyPI configuration file
-.pypirc
+```
+roslaunch exoskeleton world.launch | grep -v "ApplyBodyWrench"
+```
 
-cmake-build-debug/*
+# configuration file
+
 Launch the `rqt_gui` for control and tuning parameter:
 
-`roslaunch exoskeleton rqt.launch`
+```
+roslaunch exoskeleton rqt.launch
+```
 
-upper half for publish joint command.
-lower half for reconfigure joint controller PID parameters.
+Upper half for publish joint command.
+Lower half for reconfigure joint controller PID parameters.
 (Default is {p: 100, i: 0.01, d: 10} configured in `config/control.yaml`)
 
 ### ROS Topic 
@@ -55,7 +55,8 @@ Totally six joints:
  `LU_joint` `RU_joint` `LD_joint` `RD_joint` `LF_joint` `RF_joint`
 
 *L for left, R for right, U for up, D for down, F for foot*
-*e.g. LU_link => left up link(left thigh)*
+
+*e.g. LU_link > left up link (left thigh)*
 
 Joint position controller:
 
@@ -63,17 +64,5 @@ Joint position controller:
 /exoskeleton/LU_position_controller/command
 ```
 
-Link IMU plug-in topic:
-
-`/imu/LINKNAME`
-
-### Mechanical Parameter
-
-See in `robot_description/robot.xacro`
-It's a very simple model.
-*It can not keep balance _without_ control.*
-
 ### Gazebo Tips  
-
-Since **without** control, the robot model is vety easy to fall down.  
-It may be useful to press `space` to pause the simualtion and `ctrl-r` to reset world. 
+It may be useful to press `space` to pause the simulation and `ctrl-r` to reset world. 
