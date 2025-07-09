@@ -8,11 +8,12 @@ We need ROS-Gazebo interface and controller packages:
 sudo apt install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control ros-noetic-ros-controllers
 ```
 
-### Install the Package
+### Install the Package Simulator and Realsense Plugin
 
 ```
 cd ~/catkin_ws/src/
 git clone https://github.com/exoskeleton-iaslab/uango_simulator.git
+git clone https://github.com/pal-robotics/realsense_gazebo_plugin.git
 cd ~/catkin_ws/
 catkin_make
 source devel/setup.bash
