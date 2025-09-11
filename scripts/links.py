@@ -4,7 +4,6 @@ import os
 import xml.etree.ElementTree as Et
 
 import numpy as np
-import rospy
 
 
 class Links:
